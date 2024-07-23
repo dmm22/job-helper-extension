@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Keyword Highlighter TS",
+  "version": "1.0",
+  "description": "Highlights keywords",
+  "permissions": ["activeTab", "declarativeContent"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["./dist/content/content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "./dist/popup/index.html"
+  }
+}
