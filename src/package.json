@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "cd popup && vite",
     "build": "tsc -b && vite build",
     "watch:content": "tsc --watch",
     "watch:popup": "cd popup && vite build --watch"
