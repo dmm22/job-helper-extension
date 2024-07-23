@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply antialiased text-zinc-900;
+}
+
+input,
+textarea {
+  @apply p-1.5 rounded outline outline-1 outline-zinc-200;
+}
+
+textarea {
+  @apply resize-none;
+}
