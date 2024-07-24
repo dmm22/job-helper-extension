@@ -3,7 +3,7 @@
   "name": "Keyword Highlighter TS",
   "version": "1.0",
   "description": "Highlights keywords",
-  "permissions": ["activeTab", "declarativeContent"],
+  "permissions": ["activeTab", "declarativeContent", "storage"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

@@ -3,12 +3,11 @@ import { useCallback } from "react"
 import NewRecordForm from "./components/NewRecordForm"
 import RecordTableRow from "./components/RecordTableRow"
 
-import useLocalStorage from "./hooks/useLocalStorage"
-
 import { JobRecord } from "../../types"
+import useChromeStorage from "./hooks/useChromeStorage"
 
 export default function App() {
-  const [jobRecords, setJobRecords] = useLocalStorage<JobRecord[]>("items", [])
+  const [jobRecords, setJobRecords] = useChromeStorage<JobRecord[]>("items", [])
 
   const addJobRecord = useCallback(
     (newRecord: JobRecord) => {
