@@ -17,6 +17,17 @@ export default function App() {
     [jobRecords]
   )
 
+  const removeJobRecord = useCallback(
+    (recordToRemove: JobRecord) => {
+      setJobRecords(prevRecords =>
+        prevRecords.filter(record => {
+          return recordToRemove.applicationDate !== record.applicationDate
+        })
+      )
+    },
+    [jobRecords]
+  )
+
   const DevWrapper = ({ children }: { children: React.ReactNode }) => {
     const inDevelopment = window.location.href === "http://localhost:5173/"
     if (!inDevelopment) return children
@@ -29,7 +40,9 @@ export default function App() {
   }
 
   const minRows = 10
-  const tableFillerRows: JSX.Element[] = Array(minRows - jobRecords.length).fill(<RecordTableRow />)
+  const tableFillerRows = Array.from({ length: minRows - jobRecords.length }, (_, index) => (
+    <RecordTableRow key={`filler-${index}`} />
+  ))
 
   return (
     <DevWrapper>
@@ -53,7 +66,11 @@ export default function App() {
               </thead>
               <tbody className="divide-y rounded divide-dashed outline outline-1 outline-zinc-200">
                 {jobRecords.map(record => (
-                  <RecordTableRow key={record.applicationDate.toString()} record={record} />
+                  <RecordTableRow
+                    key={record.applicationDate.toString()}
+                    record={record}
+                    removeJobRecord={removeJobRecord}
+                  />
                 ))}
                 {tableFillerRows.length > 0 && tableFillerRows}
               </tbody>
