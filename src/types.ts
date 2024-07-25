@@ -4,3 +4,7 @@ export type JobRecord = {
   url: string
   note: string
 }
+
+export type StorageSchema = {
+  jobRecords: JobRecord[]
+}

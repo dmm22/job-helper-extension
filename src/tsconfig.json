@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "target": "ES2023",
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "outDir": "../dist/content/",
-    "lib": ["ES2023", "DOM"]
+    "outDir": "../dist",
+    "lib": ["ES2023", "DOM"],
+    "verbatimModuleSyntax": true,
+    "module": "Preserve"
   },
-  "include": ["content/**/*"]
+  "include": ["content/**/*.ts"]
 }

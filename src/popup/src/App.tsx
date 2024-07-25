@@ -7,7 +7,7 @@ import { JobRecord } from "../../types"
 import useChromeStorage from "./hooks/useChromeStorage"
 
 export default function App() {
-  const [jobRecords, setJobRecords] = useChromeStorage<JobRecord[]>("items", [])
+  const [jobRecords, setJobRecords] = useChromeStorage<JobRecord[]>("jobRecords", [])
 
   const addJobRecord = useCallback(
     (newRecord: JobRecord) => {
