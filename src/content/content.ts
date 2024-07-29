@@ -15,77 +15,61 @@ const observer = new MutationObserver(() => {
 const traverseDomAndApplyStyles = async () => {
   createAndAppendStylesheet()
   const appliedCompanyNames = await getAppliedCompanyNames()
-  if (!appliedCompanyNames) console.log(appliedCompanyNames)
-  if (!appliedCompanyNames) return
 
-  const leafNodes = getLeafNodes(appliedCompanyNames)
-  if (!leafNodes) console.log(leafNodes)
-  if (!leafNodes) return
+  const allElements = document.body.querySelectorAll("*")
 
-  applyStyles(appliedCompanyNames, leafNodes)
-}
+  const appliedCompanyRe = convertArrayToRegex(appliedCompanyNames)
+  const inclusionRe = convertArrayToRegex(inclusions)
+  const exclusionRe = convertArrayToRegex(exclusions)
+  const allKeywordRe = convertArrayToRegex([...appliedCompanyNames, ...inclusions, ...exclusions])
+  const addedClassRe = /(appliedCompanyName|positiveHighlight|negativeHighlight)/
 
-const getAppliedCompanyNames = async () => {
-  const jobRecords = await getFromStorage("jobRecords")
-  return jobRecords?.map(record => record.companyName) || null
-}
+  allElements.forEach(el => {
+    if (el.childElementCount !== 0 || excludedTags.has(el.localName) || !el.textContent) return
 
-const getLeafNodes = (appliedCompanyNames: string[]) => {
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: (node: Element) => {
-      if (node.childElementCount === 0 && !excludedTags.has(node.localName)) {
-        return NodeFilter.FILTER_ACCEPT
-      }
+    let classes = ""
 
-      return NodeFilter.FILTER_SKIP
+    if (appliedCompanyNames.length > 0 && appliedCompanyRe.test(el.textContent)) {
+      classes += "appliedCompanyName"
     }
-  })
 
-  const appliedCompanyRe = appliedCompanyNames && convertArrayToRegex(appliedCompanyNames)
-
-  let currentNode: Node | null = walker.currentNode
-
-  let nodes = []
-
-  while (currentNode) {
-    currentNode = walker.nextNode()
-
-    if (!currentNode?.textContent) continue
-    if (appliedCompanyRe.test(currentNode.textContent)) {
-      nodes.push(currentNode)
+    if (inclusionRe.test(el.textContent)) {
+      classes += " positiveHighlight"
     }
-  }
 
-  return nodes.length > 0 ? (nodes as Element[]) : null
-}
+    if (exclusionRe.test(el.textContent)) {
+      classes += " negativeHighlight"
+    }
 
-const applyStyles = (appliedCompanyNames: string[], leafNodes: Element[]) => {
-  const appliedCompanyNamesRe = convertArrayToRegex(appliedCompanyNames)
+    if (!classes || addedClassRe.test(el.className)) return
 
-  leafNodes.forEach(node => {
-    const nodeInnerHTMLSegments = node.innerHTML.replace(/(>|<)/g, match => `${match}¿`).split("¿")
-    console.log(nodeInnerHTMLSegments)
+    const innerHtmlSegments = el.innerHTML.replace(/(>|<)/g, match => `${match}¿`).split("¿")
 
-    const newInnerHTML = nodeInnerHTMLSegments
+    const newInnerHTML = innerHtmlSegments
       .map(segment => {
         if (/"/.test(segment)) return segment
 
-        return segment.replace(appliedCompanyNamesRe, keyword => {
+        return segment.replace(allKeywordRe, keyword => {
           const startingChar = keyword.match(/^(\s|\(|>)/)?.[0]
           const endingChar = keyword.match(/(\s|\)|\.|\,|<)$/)?.[0]
 
           let formattedKeyword = startingChar ? keyword.slice(1) : keyword
           if (endingChar) formattedKeyword = formattedKeyword.slice(0, -1)
 
-          return `${startingChar ?? ""}<span class="appliedCompanyName">${formattedKeyword}</span>${
+          return `${startingChar ?? ""}<span class="${classes}">${formattedKeyword}</span>${
             endingChar ?? ""
           }`
         })
       })
       .join("")
 
-    node.innerHTML = newInnerHTML
+    el.innerHTML = newInnerHTML
   })
+}
+
+const getAppliedCompanyNames = async () => {
+  const jobRecords = await getFromStorage("jobRecords")
+  return jobRecords?.map(record => record.companyName) || []
 }
 
 const createAndAppendStylesheet = () => {
@@ -96,6 +80,18 @@ const createAndAppendStylesheet = () => {
       text-decoration: line-through;
       text-decoration-thickness: 2px;
       text-decoration-color: #525252;
+    }
+
+    .positiveHighlight {
+      padding-inline: 3px;
+      background-color: rgb(74, 222, 128, 0.6);
+      color: black;
+    }
+    
+    .negativeHighlight {
+      padding-inline: 3px;
+      background-color: rgb(255, 167, 167, 0.6);
+      color: black;
     }
   `
 
@@ -116,6 +112,17 @@ const convertArrayToRegex = (array: string[]) => {
 const getFromStorage = async <T extends keyof StorageSchema>(key: T) => {
   const savedValue = await chrome.storage.local.get(key)
   return Object.keys(savedValue).length === 0 ? null : (savedValue[key] as StorageSchema[T])
+}
+
+function createKeywordRegex(arr: string[]) {
+  const escapedArr = arr.map(str => {
+    let newStr = str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    return `((^|\\s|>|\\()${newStr}($|\\s|\\)|\\.|,|<))`
+  })
+
+  const regexPattern = escapedArr.join("|")
+
+  return new RegExp(`(${regexPattern})`, "gi")
 }
 
 var excludedTags = new Set([
@@ -145,6 +152,44 @@ var excludedTags = new Set([
   "input",
   "textarea"
 ])
+
+var inclusions = [
+  "node.js",
+  "node",
+  "nodejs",
+  "reactjs",
+  "react",
+  "react.js",
+  "python",
+  "react",
+  "javascript",
+  "html",
+  "html5",
+  "css",
+  "css3",
+  "php",
+  "laravel",
+  "rest",
+  "typescript",
+  "sql",
+  "restful",
+  "nextjs",
+  "next.js",
+  "prisma",
+  "api",
+  "json"
+]
+
+var exclusions = [
+  "blockchain",
+  "smart contract",
+  "wordpress",
+  "drupal",
+  "mocha",
+  "native",
+  "ruby on rails",
+  "java"
+]
 
 observer.observe(document.body, {
   attributes: true,
